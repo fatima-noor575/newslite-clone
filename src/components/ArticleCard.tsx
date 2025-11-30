@@ -22,31 +22,33 @@ export const ArticleCard = ({
   publishedAt,
 }: ArticleCardProps) => {
   return (
-    <article className="group bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 animate-fade-in">
+    <article className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all duration-300">
       <Link to={`/article/${slug}`} className="block">
-        <div className="relative overflow-hidden aspect-video bg-muted">
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              No Image
+            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+              <span className="text-4xl text-muted-foreground/20">📰</span>
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <span className="category-badge">{category}</span>
+            <span className="px-2.5 py-1 bg-primary/90 text-primary-foreground text-xs font-bold rounded-sm backdrop-blur-sm">
+              {category}
+            </span>
           </div>
         </div>
         
         <div className="p-5">
-          <h2 className="text-xl font-serif font-bold mb-3 text-foreground group-hover:text-primary transition-colors line-clamp-2">
+          <h3 className="text-lg font-serif font-bold mb-2 text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
             {title}
-          </h2>
+          </h3>
           
-          <p className="text-muted-foreground mb-4 line-clamp-3 text-sm leading-relaxed">
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
             {excerpt}
           </p>
           
