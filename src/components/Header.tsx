@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AdsAuthContext';
 import { Newspaper, LogOut, Shield } from 'lucide-react';
 
 export const Header = () => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AdsAuthContext';
+import { Shield } from 'lucide-react';
 import { AdCard } from '@/components/AdCard';
 import { SearchBar } from '@/components/SearchBar';
 import { CategoryFilter } from '@/components/CategoryFilter';
@@ -11,7 +12,7 @@ import { Link } from 'react-router-dom';
 const ITEMS_PER_PAGE = 12;
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [ads, setAds] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +87,14 @@ export default function Home() {
             <div className="flex items-center gap-2">
               {user ? (
                 <>
+                  {isAdmin && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/admin">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin
+                      </Link>
+                    </Button>
+                  )}
                   <Button asChild size="sm">
                     <Link to="/post-ad">
                       <Plus className="h-4 w-4 mr-2" />
