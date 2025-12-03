@@ -23,6 +23,7 @@ export type Database = {
           images: string[] | null
           location: string | null
           price: number
+          rejection_reason: string | null
           status: string | null
           title: string
           updated_at: string
@@ -36,6 +37,7 @@ export type Database = {
           images?: string[] | null
           location?: string | null
           price: number
+          rejection_reason?: string | null
           status?: string | null
           title: string
           updated_at?: string
@@ -49,6 +51,7 @@ export type Database = {
           images?: string[] | null
           location?: string | null
           price?: number
+          rejection_reason?: string | null
           status?: string | null
           title?: string
           updated_at?: string
