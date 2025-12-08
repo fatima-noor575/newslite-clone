@@ -421,6 +421,10 @@ export default function AdminPanel() {
               <FileText className="h-4 w-4" />
               Advertisements
             </TabsTrigger>
+            <TabsTrigger value="articles" className="gap-2">
+              <FileText className="h-4 w-4" />
+              News Articles
+            </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
               Users ({stats.totalUsers})
@@ -562,6 +566,24 @@ export default function AdminPanel() {
                   </Table>
                 </div>
               )}
+            </Card>
+          </TabsContent>
+
+          {/* Articles Tab */}
+          <TabsContent value="articles">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold">News Article Management</h2>
+                <Button asChild>
+                  <Link to="/admin/articles">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Manage Articles
+                  </Link>
+                </Button>
+              </div>
+              <p className="text-muted-foreground text-center py-8">
+                Click "Manage Articles" to create, edit, and delete news articles for your website.
+              </p>
             </Card>
           </TabsContent>
 

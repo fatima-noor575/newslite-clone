@@ -85,6 +85,9 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-primary">ClassifiedsHub</h1>
             </Link>
             <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/news">News</Link>
+              </Button>
               {user ? (
                 <>
                   {isAdmin && (

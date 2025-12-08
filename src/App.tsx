@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AdsAuthContext";
 import Home from "./pages/Home";
+import News from "./pages/News";
+import Article from "./pages/Article";
+import ArticleManagement from "./pages/ArticleManagement";
 import AuthPage from "./pages/AuthPage";
 import PostAd from "./pages/PostAd";
 import AdDetails from "./pages/AdDetails";
@@ -23,11 +26,14 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/article/:slug" element={<Article />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/post-ad" element={<PostAd />} />
             <Route path="/ad/:id" element={<AdDetails />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/articles" element={<ArticleManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
