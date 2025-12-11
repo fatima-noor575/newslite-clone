@@ -5,17 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -28,23 +19,17 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
   Loader2,
-  CheckCircle,
-  XCircle,
   Trash2,
   ArrowLeft,
   Plus,
   Eye,
   FileText,
   Users,
-  Clock,
-  CheckCircle2,
-  XCircle as XCircleIcon,
   BarChart3,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -65,10 +50,8 @@ interface Ad {
   description: string;
   price: number;
   images: string[] | null;
-  status: string;
   created_at: string;
   location: string | null;
-  rejection_reason: string | null;
   user_id: string;
   categories: { name: string } | null;
   profiles: { name: string; phone: string | null } | null;
@@ -77,9 +60,6 @@ interface Ad {
 interface Stats {
   totalAds: number;
   totalUsers: number;
-  pendingAds: number;
-  approvedAds: number;
-  rejectedAds: number;
 }
 
 export default function AdminPanel() {
@@ -89,9 +69,6 @@ export default function AdminPanel() {
   const [stats, setStats] = useState<Stats>({
     totalAds: 0,
     totalUsers: 0,
-    pendingAds: 0,
-    approvedAds: 0,
-    rejectedAds: 0,
   });
   const [ads, setAds] = useState<Ad[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -99,15 +76,9 @@ export default function AdminPanel() {
   const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
   const [deleteItemId, setDeleteItemId] = useState<{ id: string; type: string } | null>(null);
   
-  // Filter state
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  
   // Modal states
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [adToReject, setAdToReject] = useState<Ad | null>(null);
 
   useEffect(() => {
     if (!user || !isAdmin) {
@@ -125,16 +96,10 @@ export default function AdminPanel() {
       // Fetch all stats
       const { count: adsCount } = await supabase.from('ads').select('*', { count: 'exact', head: true });
       const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-      const { count: pendingCount } = await supabase.from('ads').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-      const { count: approvedCount } = await supabase.from('ads').select('*', { count: 'exact', head: true }).eq('status', 'approved');
-      const { count: rejectedCount } = await supabase.from('ads').select('*', { count: 'exact', head: true }).eq('status', 'rejected');
       
       setStats({
         totalAds: adsCount || 0,
         totalUsers: usersCount || 0,
-        pendingAds: pendingCount || 0,
-        approvedAds: approvedCount || 0,
-        rejectedAds: rejectedCount || 0,
       });
 
       // Fetch all ads with categories
@@ -177,45 +142,6 @@ export default function AdminPanel() {
       toast.error('Failed to load admin data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const updateAdStatus = async (adId: string, status: 'approved' | 'rejected', reason?: string) => {
-    try {
-      const updateData: { status: string; rejection_reason?: string | null } = { status };
-      if (status === 'rejected' && reason) {
-        updateData.rejection_reason = reason;
-      } else if (status === 'approved') {
-        updateData.rejection_reason = null;
-      }
-
-      const { error } = await supabase
-        .from('ads')
-        .update(updateData)
-        .eq('id', adId);
-
-      if (error) throw error;
-
-      toast.success(`Ad ${status} successfully`);
-      setRejectModalOpen(false);
-      setRejectionReason('');
-      setAdToReject(null);
-      fetchData();
-    } catch (error) {
-      console.error('Error updating ad status:', error);
-      toast.error('Failed to update ad status');
-    }
-  };
-
-  const handleRejectClick = (ad: Ad) => {
-    setAdToReject(ad);
-    setRejectionReason('');
-    setRejectModalOpen(true);
-  };
-
-  const confirmReject = () => {
-    if (adToReject) {
-      updateAdStatus(adToReject.id, 'rejected', rejectionReason || undefined);
     }
   };
 
@@ -300,24 +226,6 @@ export default function AdminPanel() {
     }
   };
 
-  const filteredAds = ads.filter((ad) => {
-    if (statusFilter === 'all') return true;
-    return ad.status === statusFilter;
-  });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Pending</Badge>;
-      case 'approved':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -357,7 +265,7 @@ export default function AdminPanel() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           <Card className="p-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -371,45 +279,23 @@ export default function AdminPanel() {
           </Card>
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-500/10 rounded-lg">
-                <Clock className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold">{stats.pendingAds}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Approved</p>
-                <p className="text-2xl font-bold">{stats.approvedAds}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-500/10 rounded-lg">
-                <XCircleIcon className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Rejected</p>
-                <p className="text-2xl font-bold">{stats.rejectedAds}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500/10 rounded-lg">
                 <Users className="h-5 w-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Users</p>
                 <p className="text-2xl font-bold">{stats.totalUsers}</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <BarChart3 className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Categories</p>
+                <p className="text-2xl font-bold">{categories.length}</p>
               </div>
             </div>
           </Card>
@@ -438,26 +324,11 @@ export default function AdminPanel() {
           {/* Advertisements Tab */}
           <TabsContent value="ads">
             <Card className="p-6">
-              {/* Filter */}
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">Advertisement Management</h2>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="status-filter" className="text-sm">Filter:</Label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All ({stats.totalAds})</SelectItem>
-                      <SelectItem value="pending">Pending ({stats.pendingAds})</SelectItem>
-                      <SelectItem value="approved">Approved ({stats.approvedAds})</SelectItem>
-                      <SelectItem value="rejected">Rejected ({stats.rejectedAds})</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
-              {filteredAds.length === 0 ? (
+              {ads.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No ads found</p>
@@ -472,13 +343,12 @@ export default function AdminPanel() {
                         <TableHead>User</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Price</TableHead>
-                        <TableHead>Upload Date</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Posted</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredAds.map((ad) => (
+                      {ads.map((ad) => (
                         <TableRow key={ad.id}>
                           <TableCell>
                             <div className="w-12 h-12 bg-muted rounded overflow-hidden">
@@ -505,7 +375,7 @@ export default function AdminPanel() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{ad.categories?.name || 'N/A'}</Badge>
+                            <span className="text-sm">{ad.categories?.name || 'N/A'}</span>
                           </TableCell>
                           <TableCell className="font-semibold">
                             PKR {ad.price.toLocaleString()}
@@ -513,7 +383,6 @@ export default function AdminPanel() {
                           <TableCell className="text-sm text-muted-foreground">
                             {formatDate(ad.created_at)}
                           </TableCell>
-                          <TableCell>{getStatusBadge(ad.status || 'pending')}</TableCell>
                           <TableCell>
                             <div className="flex items-center justify-end gap-1">
                               <Button
@@ -527,28 +396,6 @@ export default function AdminPanel() {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              {ad.status !== 'approved' && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  onClick={() => updateAdStatus(ad.id, 'approved')}
-                                  title="Approve"
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {ad.status !== 'rejected' && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => handleRejectClick(ad)}
-                                  title="Reject"
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              )}
                               <Button
                                 size="icon"
                                 variant="ghost"
@@ -700,133 +547,57 @@ export default function AdminPanel() {
 
       {/* View Ad Modal */}
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Advertisement Details</DialogTitle>
-            <DialogDescription>Full details of the advertisement</DialogDescription>
+            <DialogTitle>Ad Details</DialogTitle>
+            <DialogDescription>
+              Viewing ad information
+            </DialogDescription>
           </DialogHeader>
           {selectedAd && (
-            <div className="space-y-6">
-              {/* Images */}
+            <div className="space-y-4">
               {selectedAd.images && selectedAd.images.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Images</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {selectedAd.images.map((img, idx) => (
-                      <div key={idx} className="aspect-video bg-muted rounded-lg overflow-hidden">
-                        <img src={img} alt={`${selectedAd.title} ${idx + 1}`} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedAd.images.slice(0, 4).map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`Image ${idx + 1}`}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                  ))}
                 </div>
               )}
-
-              {/* Details Grid */}
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="font-semibold text-lg">{selectedAd.title}</h3>
+                <p className="text-2xl font-bold text-primary mt-2">
+                  PKR {selectedAd.price.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Description</p>
+                <p className="text-sm">{selectedAd.description}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <Label className="text-muted-foreground">Ad ID</Label>
-                  <p className="font-mono text-sm">{selectedAd.id}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Status</Label>
-                  <div className="mt-1">{getStatusBadge(selectedAd.status || 'pending')}</div>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Title</Label>
-                  <p className="font-semibold">{selectedAd.title}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Price</Label>
-                  <p className="font-bold text-primary">PKR {selectedAd.price.toLocaleString()}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Category</Label>
-                  <p>{selectedAd.categories?.name || 'N/A'}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Location</Label>
+                  <p className="text-muted-foreground">Location</p>
                   <p>{selectedAd.location || 'Not specified'}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Posted By</Label>
+                  <p className="text-muted-foreground">Category</p>
+                  <p>{selectedAd.categories?.name || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Posted by</p>
                   <p>{selectedAd.profiles?.name || 'Unknown'}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Upload Date</Label>
+                  <p className="text-muted-foreground">Posted on</p>
                   <p>{formatDate(selectedAd.created_at)}</p>
                 </div>
               </div>
-
-              {/* Description */}
-              <div>
-                <Label className="text-muted-foreground">Description</Label>
-                <p className="mt-1 text-sm whitespace-pre-wrap">{selectedAd.description}</p>
-              </div>
-
-              {/* Rejection Reason */}
-              {selectedAd.status === 'rejected' && selectedAd.rejection_reason && (
-                <div className="p-4 bg-destructive/10 rounded-lg">
-                  <Label className="text-destructive">Rejection Reason</Label>
-                  <p className="mt-1 text-sm">{selectedAd.rejection_reason}</p>
-                </div>
-              )}
-
-              {/* Actions */}
-              <DialogFooter className="gap-2">
-                {selectedAd.status !== 'approved' && (
-                  <Button onClick={() => {
-                    updateAdStatus(selectedAd.id, 'approved');
-                    setViewModalOpen(false);
-                  }} className="bg-green-600 hover:bg-green-700">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve
-                  </Button>
-                )}
-                {selectedAd.status !== 'rejected' && (
-                  <Button variant="destructive" onClick={() => {
-                    setViewModalOpen(false);
-                    handleRejectClick(selectedAd);
-                  }}>
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Reject
-                  </Button>
-                )}
-              </DialogFooter>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Modal with Reason */}
-      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject Advertisement</DialogTitle>
-            <DialogDescription>
-              Provide a reason for rejecting "{adToReject?.title}"
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="rejection-reason">Rejection Reason (Optional)</Label>
-              <Textarea
-                id="rejection-reason"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Enter the reason for rejection..."
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmReject}>
-              <XCircle className="h-4 w-4 mr-2" />
-              Reject Ad
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -842,14 +613,13 @@ export default function AdminPanel() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
-                if (deleteItemId?.type === 'user') {
+                if (deleteItemId?.type === 'ad') {
+                  deleteAd(deleteItemId.id);
+                } else if (deleteItemId?.type === 'user') {
                   deleteUser(deleteItemId.id);
                 } else if (deleteItemId?.type === 'category') {
                   deleteCategory(deleteItemId.id);
-                } else if (deleteItemId?.type === 'ad') {
-                  deleteAd(deleteItemId.id);
                 }
               }}
             >
