@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+
 import { Loader2, Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -114,18 +114,12 @@ export default function Dashboard() {
     toast.success('Signed out successfully');
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      pending: 'bg-warning/20 text-warning',
-      approved: 'bg-success/20 text-success',
-      rejected: 'bg-destructive/20 text-destructive',
-    };
-    
-    return (
-      <Badge className={variants[status] || ''}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    );
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   if (loading) {
@@ -206,10 +200,10 @@ export default function Dashboard() {
                       )}
                     </div>
                     
-                    <div className="space-y-2">
+                      <div className="space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-semibold line-clamp-1">{ad.title}</h3>
-                        {getStatusBadge(ad.status)}
+                        <span className="text-xs text-muted-foreground">{formatDate(ad.created_at)}</span>
                       </div>
                       
                       <p className="text-xl font-bold text-primary">

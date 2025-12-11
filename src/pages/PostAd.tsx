@@ -90,12 +90,12 @@ export default function PostAd() {
         price: parseFloat(formData.price),
         location: formData.location,
         images: images,
-        status: 'pending',
+        status: 'approved',
       });
 
       if (error) throw error;
 
-      toast.success('Ad submitted successfully! Waiting for admin approval.');
+      toast.success('Ad posted successfully!');
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Error posting ad:', error);
@@ -197,7 +197,7 @@ export default function PostAd() {
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Submit Ad for Approval
+              Post Ad
             </Button>
           </form>
         </Card>
