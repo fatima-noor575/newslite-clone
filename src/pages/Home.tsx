@@ -43,7 +43,7 @@ export default function Home() {
     try {
       let query = supabase
         .from('ads')
-        .select('*, categories(name, icon), profiles(name)', { count: 'exact' })
+        .select('*, categories(name, icon)', { count: 'exact' })
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
