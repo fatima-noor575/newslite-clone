@@ -5,8 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -16,21 +14,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Loader2,
   Trash2,
   ArrowLeft,
   Plus,
-  Eye,
   FileText,
   Users,
-  BarChart3,
+  Newspaper,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -44,21 +34,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface Ad {
+interface Article {
   id: string;
   title: string;
-  description: string;
-  price: number;
-  images: string[] | null;
-  created_at: string;
-  location: string | null;
-  user_id: string;
-  categories: { name: string } | null;
-  profiles: { name: string; phone: string | null } | null;
+  slug: string;
+  category: string;
+  excerpt: string;
+  published_at: string;
 }
 
 interface Stats {
-  totalAds: number;
+  totalArticles: number;
   totalUsers: number;
 }
 
@@ -67,18 +53,12 @@ export default function AdminPanel() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats>({
-    totalAds: 0,
+    totalArticles: 0,
     totalUsers: 0,
   });
-  const [ads, setAds] = useState<Ad[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
   const [deleteItemId, setDeleteItemId] = useState<{ id: string; type: string } | null>(null);
-  
-  // Modal states
-  const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
-  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !isAdmin) {
@@ -93,74 +73,40 @@ export default function AdminPanel() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch all stats
-      const { count: adsCount } = await supabase.from('ads').select('*', { count: 'exact', head: true });
-      const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-      
+      // Fetch stats
+      const { count: articlesCount } = await supabase
+        .from('articles')
+        .select('*', { count: 'exact', head: true });
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
       setStats({
-        totalAds: adsCount || 0,
+        totalArticles: articlesCount || 0,
         totalUsers: usersCount || 0,
       });
 
-      // Fetch all ads with categories
-      const { data: adsData } = await supabase
-        .from('ads')
-        .select('*, categories(name)')
-        .order('created_at', { ascending: false });
-      
-      // Fetch profiles separately to join with ads
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, name, phone');
-      
-      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
-      
-      const adsWithProfiles = (adsData || []).map(ad => ({
-        ...ad,
-        profiles: profilesMap.get(ad.user_id) || null
-      })) as Ad[];
-      
-      setAds(adsWithProfiles);
+      // Fetch articles
+      const { data: articlesData } = await supabase
+        .from('articles')
+        .select('id, title, slug, category, excerpt, published_at')
+        .order('published_at', { ascending: false })
+        .limit(20);
 
-      // Fetch all users
+      setArticles((articlesData as Article[]) || []);
+
+      // Fetch users
       const { data: usersData } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      setAllUsers(usersData || []);
 
-      // Fetch categories
-      const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      setCategories(categoriesData || []);
+      setAllUsers(usersData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load admin data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const deleteAd = async (adId: string) => {
-    try {
-      const { error } = await supabase
-        .from('ads')
-        .delete()
-        .eq('id', adId);
-
-      if (error) throw error;
-
-      toast.success('Ad deleted successfully');
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting ad:', error);
-      toast.error('Failed to delete ad');
-    } finally {
-      setDeleteItemId(null);
     }
   };
 
@@ -183,44 +129,20 @@ export default function AdminPanel() {
     }
   };
 
-  const addCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newCategory.name || !newCategory.icon) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
+  const deleteArticle = async (articleId: string) => {
     try {
       const { error } = await supabase
-        .from('categories')
-        .insert({ name: newCategory.name, icon: newCategory.icon });
-
-      if (error) throw error;
-
-      toast.success('Category added successfully');
-      setNewCategory({ name: '', icon: '' });
-      fetchData();
-    } catch (error) {
-      console.error('Error adding category:', error);
-      toast.error('Failed to add category');
-    }
-  };
-
-  const deleteCategory = async (categoryId: string) => {
-    try {
-      const { error } = await supabase
-        .from('categories')
+        .from('articles')
         .delete()
-        .eq('id', categoryId);
+        .eq('id', articleId);
 
       if (error) throw error;
 
-      toast.success('Category deleted successfully');
+      toast.success('Article deleted successfully');
       fetchData();
     } catch (error) {
-      console.error('Error deleting category:', error);
-      toast.error('Failed to delete category');
+      console.error('Error deleting article:', error);
+      toast.error('Failed to delete article');
     } finally {
       setDeleteItemId(null);
     }
@@ -231,8 +153,6 @@ export default function AdminPanel() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   };
 
@@ -265,15 +185,15 @@ export default function AdminPanel() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           <Card className="p-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
-                <FileText className="h-5 w-5 text-primary" />
+                <Newspaper className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Ads</p>
-                <p className="text-2xl font-bold">{stats.totalAds}</p>
+                <p className="text-sm text-muted-foreground">Total Articles</p>
+                <p className="text-2xl font-bold">{stats.totalArticles}</p>
               </div>
             </div>
           </Card>
@@ -288,139 +208,25 @@ export default function AdminPanel() {
               </div>
             </div>
           </Card>
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Categories</p>
-                <p className="text-2xl font-bold">{categories.length}</p>
-              </div>
-            </div>
-          </Card>
         </div>
 
-        <Tabs defaultValue="ads" className="w-full">
+        <Tabs defaultValue="articles" className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="ads" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Advertisements
-            </TabsTrigger>
             <TabsTrigger value="articles" className="gap-2">
               <FileText className="h-4 w-4" />
-              News Articles
+              Articles ({stats.totalArticles})
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
               Users ({stats.totalUsers})
             </TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Categories ({categories.length})
-            </TabsTrigger>
           </TabsList>
-
-          {/* Advertisements Tab */}
-          <TabsContent value="ads">
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold">Advertisement Management</h2>
-              </div>
-
-              {ads.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No ads found</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-16">Image</TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Posted</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {ads.map((ad) => (
-                        <TableRow key={ad.id}>
-                          <TableCell>
-                            <div className="w-12 h-12 bg-muted rounded overflow-hidden">
-                              {ad.images && ad.images.length > 0 ? (
-                                <img
-                                  src={ad.images[0]}
-                                  alt={ad.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-xl">
-                                  📷
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium max-w-[200px] truncate">
-                            {ad.title}
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <p className="font-medium">{ad.profiles?.name || 'Unknown'}</p>
-                              <p className="text-muted-foreground text-xs">{ad.profiles?.phone || 'No phone'}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm">{ad.categories?.name || 'N/A'}</span>
-                          </TableCell>
-                          <TableCell className="font-semibold">
-                            PKR {ad.price.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(ad.created_at)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => {
-                                  setSelectedAd(ad);
-                                  setViewModalOpen(true);
-                                }}
-                                title="View Details"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => setDeleteItemId({ id: ad.id, type: 'ad' })}
-                                title="Delete"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </Card>
-          </TabsContent>
 
           {/* Articles Tab */}
           <TabsContent value="articles">
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold">News Article Management</h2>
+                <h2 className="text-lg font-semibold">Article Management</h2>
                 <Button asChild>
                   <Link to="/admin/articles">
                     <Plus className="h-4 w-4 mr-2" />
@@ -428,9 +234,57 @@ export default function AdminPanel() {
                   </Link>
                 </Button>
               </div>
-              <p className="text-muted-foreground text-center py-8">
-                Click "Manage Articles" to create, edit, and delete news articles for your website.
-              </p>
+
+              {articles.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">No articles found</p>
+                  <Button asChild>
+                    <Link to="/admin/articles">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create First Article
+                    </Link>
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Published</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {articles.map((article) => (
+                      <TableRow key={article.id}>
+                        <TableCell className="font-medium max-w-[300px] truncate">
+                          {article.title}
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
+                            {article.category}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {formatDate(article.published_at)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setDeleteItemId({ id: article.id, type: 'article' })}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </Card>
           </TabsContent>
 
@@ -478,130 +332,10 @@ export default function AdminPanel() {
               )}
             </Card>
           </TabsContent>
-
-          {/* Categories Tab */}
-          <TabsContent value="categories">
-            <div className="space-y-6">
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Add New Category</h3>
-                <form onSubmit={addCategory} className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor="cat-name">Name</Label>
-                    <Input
-                      id="cat-name"
-                      value={newCategory.name}
-                      onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                      placeholder="e.g., Furniture"
-                    />
-                  </div>
-                  <div className="w-full sm:w-32 space-y-2">
-                    <Label htmlFor="cat-icon">Icon (Emoji)</Label>
-                    <Input
-                      id="cat-icon"
-                      value={newCategory.icon}
-                      onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
-                      placeholder="e.g., 🪑"
-                    />
-                  </div>
-                  <div className="self-end">
-                    <Button type="submit">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </div>
-                </form>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Existing Categories</h3>
-                {categories.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No categories yet</p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {categories.map((cat) => (
-                      <div
-                        key={cat.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{cat.icon}</span>
-                          <span className="font-medium">{cat.name}</span>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => setDeleteItemId({ id: cat.id, type: 'category' })}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            </div>
-          </TabsContent>
         </Tabs>
       </main>
 
-      {/* View Ad Modal */}
-      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Ad Details</DialogTitle>
-            <DialogDescription>
-              Viewing ad information
-            </DialogDescription>
-          </DialogHeader>
-          {selectedAd && (
-            <div className="space-y-4">
-              {selectedAd.images && selectedAd.images.length > 0 && (
-                <div className="grid grid-cols-2 gap-2">
-                  {selectedAd.images.slice(0, 4).map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt={`Image ${idx + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                  ))}
-                </div>
-              )}
-              <div>
-                <h3 className="font-semibold text-lg">{selectedAd.title}</h3>
-                <p className="text-2xl font-bold text-primary mt-2">
-                  PKR {selectedAd.price.toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Description</p>
-                <p className="text-sm">{selectedAd.description}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Location</p>
-                  <p>{selectedAd.location || 'Not specified'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Category</p>
-                  <p>{selectedAd.categories?.name || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Posted by</p>
-                  <p>{selectedAd.profiles?.name || 'Unknown'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Posted on</p>
-                  <p>{formatDate(selectedAd.created_at)}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteItemId} onOpenChange={() => setDeleteItemId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -613,13 +347,12 @@ export default function AdminPanel() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
-                if (deleteItemId?.type === 'ad') {
-                  deleteAd(deleteItemId.id);
-                } else if (deleteItemId?.type === 'user') {
+                if (deleteItemId?.type === 'user') {
                   deleteUser(deleteItemId.id);
-                } else if (deleteItemId?.type === 'category') {
-                  deleteCategory(deleteItemId.id);
+                } else if (deleteItemId?.type === 'article') {
+                  deleteArticle(deleteItemId.id);
                 }
               }}
             >
