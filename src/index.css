@@ -2,58 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ProPakistani-inspired News Website Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 97%;
+    --foreground: 0 0% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 215 100% 50%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 72% 51%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 215 100% 50%;
-    --radius: 0.5rem;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 142 76% 36%;
+    --radius: 0.25rem;
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
+    
+    /* News-specific tokens */
+    --news-primary: 142 76% 36%;
+    --news-accent: 0 72% 51%;
+    --news-heading: 0 0% 10%;
+    --news-body: 0 0% 25%;
+    --news-meta: 0 0% 50%;
+    --news-border: 0 0% 88%;
+    --news-highlight: 45 100% 51%;
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 215 100% 55%;
+    --background: 0 0% 8%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 142 76% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 72% 55%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 215 100% 55%;
-    --success: 142 76% 36%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 142 76% 45%;
+    --success: 142 76% 45%;
     --warning: 38 92% 50%;
+    
+    --news-primary: 142 76% 45%;
+    --news-accent: 0 72% 55%;
+    --news-heading: 0 0% 95%;
+    --news-body: 0 0% 80%;
+    --news-meta: 0 0% 60%;
+    --news-border: 0 0% 25%;
+    --news-highlight: 45 100% 55%;
   }
 }
 
@@ -64,25 +79,55 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-bold tracking-tight;
+    font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif;
   }
 }
 
 @layer utilities {
   .font-serif {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Merriweather', Georgia, serif;
   }
 
-  .article-link {
-    @apply relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full;
+  .font-headline {
+    font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif;
   }
-  
-  .category-badge {
-    @apply inline-flex items-center px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-primary/10 text-primary transition-all duration-300 hover:scale-105;
+
+  .news-headline {
+    @apply font-bold text-foreground leading-tight tracking-tight;
+    font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif;
+  }
+
+  .news-category {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-bold uppercase tracking-wider bg-primary text-primary-foreground;
+  }
+
+  .news-category-accent {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-bold uppercase tracking-wider bg-accent text-accent-foreground;
+  }
+
+  .news-meta {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .news-excerpt {
+    @apply text-muted-foreground leading-relaxed;
+  }
+
+  .news-border-bottom {
+    @apply border-b border-border pb-4 mb-4;
+  }
+
+  .news-link {
+    @apply text-foreground hover:text-primary transition-colors duration-200;
+  }
+
+  .breaking-news {
+    @apply bg-accent text-accent-foreground px-3 py-1 font-bold uppercase text-sm animate-pulse;
   }
 
   .line-clamp-2 {
@@ -99,6 +144,13 @@ All colors MUST be HSL.
     overflow: hidden;
   }
 
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -109,19 +161,31 @@ All colors MUST be HSL.
   }
 
   .animate-fade-in {
-    animation: fade-in 0.5s ease-out;
+    animation: fade-in 0.3s ease-out;
   }
 
   @keyframes fade-in {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(5px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-[1.02];
+  }
+
+  .news-card {
+    @apply bg-card border border-border hover:shadow-md transition-shadow duration-200;
+  }
+
+  .featured-overlay {
+    @apply absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent;
+  }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@400;700&family=Merriweather:wght@400;700&display=swap');
