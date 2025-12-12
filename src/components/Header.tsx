@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AdsAuthContext';
-import { Newspaper, LogOut, Shield } from 'lucide-react';
+import { Newspaper, LogOut, Shield, PenSquare } from 'lucide-react';
 
 export const Header = () => {
   const { user, isAdmin, signOut } = useAuth();
@@ -25,15 +25,26 @@ export const Header = () => {
             {user ? (
               <>
                 {isAdmin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/admin')}
-                    className="gap-2"
-                  >
-                    <Shield className="h-4 w-4" />
-                    Admin
-                  </Button>
+                  <>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => navigate('/admin/articles')}
+                      className="gap-2"
+                    >
+                      <PenSquare className="h-4 w-4" />
+                      Publish News
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/admin')}
+                      className="gap-2"
+                    >
+                      <Shield className="h-4 w-4" />
+                      Admin
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="ghost"

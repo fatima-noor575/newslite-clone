@@ -5,6 +5,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -21,6 +31,9 @@ import {
   FileText,
   Users,
   Newspaper,
+  Edit,
+  Eye,
+  PenSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -33,6 +46,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+const CATEGORIES = ['Technology', 'Business', 'Politics', 'Sports', 'Entertainment', 'Health', 'Science'];
 
 interface Article {
   id: string;
@@ -48,6 +71,15 @@ interface Stats {
   totalUsers: number;
 }
 
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+};
+
 export default function AdminPanel() {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -59,6 +91,16 @@ export default function AdminPanel() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [deleteItemId, setDeleteItemId] = useState<{ id: string; type: string } | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    excerpt: '',
+    content: '',
+    thumbnail_url: '',
+    category: '',
+  });
 
   useEffect(() => {
     if (!user || !isAdmin) {
@@ -156,6 +198,99 @@ export default function AdminPanel() {
     });
   };
 
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      excerpt: '',
+      content: '',
+      thumbnail_url: '',
+      category: '',
+    });
+    setEditingArticle(null);
+  };
+
+  const openCreateForm = () => {
+    resetForm();
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = async (article: Article) => {
+    // Fetch full article content
+    const { data } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('id', article.id)
+      .maybeSingle();
+    
+    if (data) {
+      setEditingArticle(article);
+      setFormData({
+        title: data.title,
+        excerpt: data.excerpt,
+        content: data.content,
+        thumbnail_url: data.thumbnail_url || '',
+        category: data.category,
+      });
+      setIsFormOpen(true);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.title || !formData.excerpt || !formData.content || !formData.category) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const slug = generateSlug(formData.title);
+      
+      if (editingArticle) {
+        const { error } = await supabase
+          .from('articles')
+          .update({
+            title: formData.title,
+            slug,
+            excerpt: formData.excerpt,
+            content: formData.content,
+            thumbnail_url: formData.thumbnail_url || null,
+            category: formData.category,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingArticle.id);
+
+        if (error) throw error;
+        toast.success('Article updated successfully');
+      } else {
+        const { error } = await supabase
+          .from('articles')
+          .insert({
+            title: formData.title,
+            slug,
+            excerpt: formData.excerpt,
+            content: formData.content,
+            thumbnail_url: formData.thumbnail_url || null,
+            category: formData.category,
+            published_at: new Date().toISOString(),
+          });
+
+        if (error) throw error;
+        toast.success('Article published successfully!');
+      }
+
+      setIsFormOpen(false);
+      resetForm();
+      fetchData();
+    } catch (error) {
+      console.error('Error saving article:', error);
+      toast.error('Failed to save article');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -179,6 +314,10 @@ export default function AdminPanel() {
               </Button>
               <h1 className="text-2xl font-bold">Admin Panel</h1>
             </div>
+            <Button onClick={openCreateForm} className="gap-2">
+              <PenSquare className="h-4 w-4" />
+              Publish News
+            </Button>
           </div>
         </div>
       </header>
@@ -199,8 +338,8 @@ export default function AdminPanel() {
           </Card>
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-secondary/50 rounded-lg">
+                <Users className="h-5 w-5 text-secondary-foreground" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Users</p>
@@ -227,23 +366,21 @@ export default function AdminPanel() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">Article Management</h2>
-                <Button asChild>
-                  <Link to="/admin/articles">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Manage Articles
-                  </Link>
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={openCreateForm} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    New Article
+                  </Button>
+                </div>
               </div>
 
               {articles.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground mb-4">No articles found</p>
-                  <Button asChild>
-                    <Link to="/admin/articles">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create First Article
-                    </Link>
+                  <Button onClick={openCreateForm} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create First Article
                   </Button>
                 </div>
               ) : (
@@ -259,8 +396,9 @@ export default function AdminPanel() {
                   <TableBody>
                     {articles.map((article) => (
                       <TableRow key={article.id}>
-                        <TableCell className="font-medium max-w-[300px] truncate">
-                          {article.title}
+                        <TableCell className="font-medium max-w-[300px]">
+                          <p className="truncate">{article.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{article.excerpt}</p>
                         </TableCell>
                         <TableCell>
                           <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
@@ -271,14 +409,30 @@ export default function AdminPanel() {
                           {formatDate(article.published_at)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setDeleteItemId({ id: article.id, type: 'article' })}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => navigate(`/article/${article.slug}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openEditForm(article)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteItemId({ id: article.id, type: 'article' })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -318,11 +472,11 @@ export default function AdminPanel() {
                         <TableCell className="text-right">
                           <Button
                             size="sm"
-                            variant="destructive"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
                             onClick={() => setDeleteItemId({ id: u.user_id, type: 'user' })}
                           >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -334,6 +488,101 @@ export default function AdminPanel() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Publish/Edit Article Dialog */}
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PenSquare className="h-5 w-5" />
+              {editingArticle ? 'Edit Article' : 'Publish News Article'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingArticle 
+                ? 'Update the article details below.' 
+                : 'Fill in the details to publish a new article. It will appear on the homepage immediately.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Enter article title"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="thumbnail_url">Thumbnail URL</Label>
+                <Input
+                  id="thumbnail_url"
+                  value={formData.thumbnail_url}
+                  onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="excerpt">Excerpt *</Label>
+              <Textarea
+                id="excerpt"
+                value={formData.excerpt}
+                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                placeholder="Brief summary of the article..."
+                rows={2}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="content">Content *</Label>
+              <Textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                placeholder="Write your article content here..."
+                rows={10}
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {editingArticle ? 'Update Article' : 'Publish Article'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteItemId} onOpenChange={() => setDeleteItemId(null)}>
