@@ -91,10 +91,11 @@ const Admin = () => {
 
     try {
       const slug = generateSlug(formData.title);
+      const { thumbnailUrl, ...rest } = formData;
       const articleData = {
-        ...formData,
+        ...rest,
         slug,
-        thumbnail_url: formData.thumbnailUrl || null,
+        thumbnail_url: thumbnailUrl || null,
       };
 
       if (editingId) {
