@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root { --bg: 255 255 255; }
+.dark { --bg: 10 10 10; }
+body { @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100; }
