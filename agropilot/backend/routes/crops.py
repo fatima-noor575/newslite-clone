@@ -24,3 +24,11 @@ def update(cid: int, body: CropIn, user: User = Depends(get_current_user), db: S
     if not c: raise HTTPException(404)
     for k, v in body.model_dump(exclude_none=True).items(): setattr(c, k, v)
     db.commit(); db.refresh(c); return c
+
+@router.delete("/{cid}")
+def delete(cid: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    c = CropRepo(db).get_owned(cid, user.id)
+    if not c: raise HTTPException(404, "Crop not found")
+    db.delete(c); db.commit()
+    return {"ok": True}
+
