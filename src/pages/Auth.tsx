@@ -1,180 +1,61 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Newspaper } from 'lucide-react';
-import { z } from 'zod';
+import { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { Leaf } from "lucide-react";
 
-const emailSchema = z.string().trim().email({ message: 'Invalid email address' }).max(255);
-const passwordSchema = z.string().min(6, { message: 'Password must be at least 6 characters' }).max(100);
-
-const Auth = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  
-  const { signIn, signUp, user } = useAuth();
+export default function Auth() {
+  const { user, signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+  if (user) return <Navigate to="/dashboard" replace />;
 
-  const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
-    
-    const emailResult = emailSchema.safeParse(email);
-    if (!emailResult.success) {
-      newErrors.email = emailResult.error.errors[0].message;
-    }
-    
-    const passwordResult = passwordSchema.safeParse(password);
-    if (!passwordResult.success) {
-      newErrors.password = passwordResult.error.errors[0].message;
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
-    setLoading(true);
-    const { error } = await signIn(email, password);
-    setLoading(false);
-    
-    if (!error) {
-      navigate('/');
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
-    setLoading(true);
-    const { error } = await signUp(email, password);
-    setLoading(false);
-    
-    if (!error) {
-      setEmail('');
-      setPassword('');
-    }
+  const submit = async (mode: "in" | "up") => {
+    setBusy(true);
+    const { error } = mode === "in" ? await signIn(email, password) : await signUp(email, password, name);
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else if (mode === "up") toast.success("Check your email to confirm — or sign in.");
+    else navigate("/dashboard");
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Newspaper className="h-10 w-10 text-primary" />
-            <h1 className="text-3xl font-serif font-bold text-primary">NewsHub</h1>
-          </div>
-          <p className="text-muted-foreground">Sign in to access admin features</p>
+    <div className="min-h-screen grid place-items-center bg-muted/30 p-4">
+      <div className="w-full max-w-md bg-card border rounded-xl p-8">
+        <div className="flex items-center gap-2 mb-6 justify-center">
+          <Leaf className="h-6 w-6 text-primary" /><span className="font-semibold text-lg">AgroPilot</span>
         </div>
-
-        <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+        <Tabs defaultValue="in">
+          <TabsList className="grid grid-cols-2 w-full mb-6">
+            <TabsTrigger value="in">Sign in</TabsTrigger>
+            <TabsTrigger value="up">Sign up</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="signin">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sign In</CardTitle>
-                <CardDescription>Enter your credentials to access your account</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                  </div>
-
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+          <TabsContent value="in" className="space-y-4">
+            <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} /></div>
+            <div><Label>Password</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
+            <Button className="w-full" onClick={() => submit("in")} disabled={busy}>Sign in</Button>
           </TabsContent>
-
-          <TabsContent value="signup">
-            <Card>
-              <CardHeader>
-                <CardTitle>Create Account</CardTitle>
-                <CardDescription>Sign up to create a new account</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                  </div>
-
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Creating account...' : 'Sign Up'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+          <TabsContent value="up" className="space-y-4">
+            <div><Label>Name</Label><Input value={name} onChange={e => setName(e.target.value)} /></div>
+            <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} /></div>
+            <div><Label>Password</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
+            <Button className="w-full" onClick={() => submit("up")} disabled={busy}>Create account</Button>
           </TabsContent>
         </Tabs>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+          <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or</span></div>
+        </div>
+        <Button variant="outline" className="w-full" onClick={signInWithGoogle}>Continue with Google</Button>
       </div>
     </div>
   );
-};
-
-export default Auth;
+}
