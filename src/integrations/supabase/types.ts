@@ -14,147 +14,266 @@ export type Database = {
   }
   public: {
     Tables: {
-      ads: {
+      advisories: {
         Row: {
-          category_id: string
           created_at: string
-          description: string
+          crop_id: string | null
+          farm_id: string | null
           id: string
-          images: string[] | null
-          location: string | null
-          price: number
-          rejection_reason: string | null
-          status: string | null
+          input: Json
+          kind: string
+          recommendation: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          crop_id?: string | null
+          farm_id?: string | null
+          id?: string
+          input: Json
+          kind: string
+          recommendation: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          crop_id?: string | null
+          farm_id?: string | null
+          id?: string
+          input?: Json
+          kind?: string
+          recommendation?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisories_crop_id_fkey"
+            columns: ["crop_id"]
+            isOneToOne: false
+            referencedRelation: "crops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisories_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          parts: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parts: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parts?: Json
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          created_at: string
+          id: string
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          category_id: string
           created_at?: string
-          description: string
           id?: string
-          images?: string[] | null
-          location?: string | null
-          price: number
-          rejection_reason?: string | null
-          status?: string | null
-          title: string
+          title?: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          category_id?: string
           created_at?: string
-          description?: string
           id?: string
-          images?: string[] | null
-          location?: string | null
-          price?: number
-          rejection_reason?: string | null
-          status?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ads_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      articles: {
-        Row: {
-          category: string
-          content: string
-          created_at: string | null
-          excerpt: string
-          id: string
-          published_at: string | null
-          slug: string
-          thumbnail_url: string | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          category: string
-          content: string
-          created_at?: string | null
-          excerpt: string
-          id?: string
-          published_at?: string | null
-          slug: string
-          thumbnail_url?: string | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string
-          content?: string
-          created_at?: string | null
-          excerpt?: string
-          id?: string
-          published_at?: string | null
-          slug?: string
-          thumbnail_url?: string | null
-          title?: string
-          updated_at?: string | null
-        }
         Relationships: []
       }
-      categories: {
+      crops: {
         Row: {
+          area_hectares: number | null
           created_at: string
-          icon: string | null
+          expected_harvest_at: string | null
+          farm_id: string
           id: string
           name: string
+          notes: string | null
+          planted_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          variety: string | null
         }
         Insert: {
+          area_hectares?: number | null
           created_at?: string
-          icon?: string | null
+          expected_harvest_at?: string | null
+          farm_id: string
           id?: string
           name: string
+          notes?: string | null
+          planted_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          variety?: string | null
         }
         Update: {
+          area_hectares?: number | null
           created_at?: string
-          icon?: string | null
+          expected_harvest_at?: string | null
+          farm_id?: string
           id?: string
           name?: string
+          notes?: string | null
+          planted_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          variety?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crops_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      favorites: {
+      disease_scans: {
         Row: {
-          ad_id: string
           created_at: string
+          crop_id: string | null
+          diagnosis: Json | null
           id: string
+          image_path: string
           user_id: string
         }
         Insert: {
-          ad_id: string
           created_at?: string
+          crop_id?: string | null
+          diagnosis?: Json | null
           id?: string
+          image_path: string
           user_id: string
         }
         Update: {
-          ad_id?: string
           created_at?: string
+          crop_id?: string | null
+          diagnosis?: Json | null
           id?: string
+          image_path?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "favorites_ad_id_fkey"
-            columns: ["ad_id"]
+            foreignKeyName: "disease_scans_crop_id_fkey"
+            columns: ["crop_id"]
             isOneToOne: false
-            referencedRelation: "ads"
+            referencedRelation: "crops"
             referencedColumns: ["id"]
           },
         ]
+      }
+      farms: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          size_hectares: number | null
+          soil_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          size_hectares?: number | null
+          soil_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          size_hectares?: number | null
+          soil_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -163,6 +282,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          preferred_language: string
           user_id: string
         }
         Insert: {
@@ -171,6 +291,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          preferred_language?: string
           user_id: string
         }
         Update: {
@@ -179,6 +300,87 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          preferred_language?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profit_scenarios: {
+        Row: {
+          break_even_price: number | null
+          cost_per_hectare: number
+          created_at: string
+          crop_id: string | null
+          expected_price_per_kg: number
+          expected_yield_kg: number
+          id: string
+          name: string
+          roi: number | null
+          scenarios: Json | null
+          user_id: string
+        }
+        Insert: {
+          break_even_price?: number | null
+          cost_per_hectare: number
+          created_at?: string
+          crop_id?: string | null
+          expected_price_per_kg: number
+          expected_yield_kg: number
+          id?: string
+          name: string
+          roi?: number | null
+          scenarios?: Json | null
+          user_id: string
+        }
+        Update: {
+          break_even_price?: number | null
+          cost_per_hectare?: number
+          created_at?: string
+          crop_id?: string | null
+          expected_price_per_kg?: number
+          expected_yield_kg?: number
+          id?: string
+          name?: string
+          roi?: number | null
+          scenarios?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profit_scenarios_crop_id_fkey"
+            columns: ["crop_id"]
+            isOneToOne: false
+            referencedRelation: "crops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          pdf_path: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          payload: Json
+          pdf_path?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          pdf_path?: string | null
+          title?: string
           user_id?: string
         }
         Relationships: []
@@ -203,6 +405,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      yield_predictions: {
+        Row: {
+          created_at: string
+          crop_id: string | null
+          id: string
+          inputs: Json
+          predicted_yield_kg: number | null
+          reasoning: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          crop_id?: string | null
+          id?: string
+          inputs: Json
+          predicted_yield_kg?: number | null
+          reasoning?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          crop_id?: string | null
+          id?: string
+          inputs?: Json
+          predicted_yield_kg?: number | null
+          reasoning?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_predictions_crop_id_fkey"
+            columns: ["crop_id"]
+            isOneToOne: false
+            referencedRelation: "crops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
