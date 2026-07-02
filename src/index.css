@@ -2,190 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ProPakistani-inspired News Website Design System */
+/* ============================================================
+   AgroPilot — Premium Agricultural Design System
+   Deep emerald + warm gold, glass surfaces, elevated shadows.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 97%;
-    --foreground: 0 0% 10%;
+    /* Base surfaces — warm cream */
+    --background: 40 33% 97%;
+    --foreground: 155 25% 12%;
+
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 155 25% 12%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 72% 51%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --popover-foreground: 155 25% 12%;
+
+    /* Primary — deep forest emerald */
+    --primary: 158 64% 22%;
+    --primary-foreground: 40 33% 97%;
+    --primary-glow: 158 55% 40%;
+
+    /* Secondary — muted sage */
+    --secondary: 145 20% 94%;
+    --secondary-foreground: 158 40% 18%;
+
+    --muted: 40 20% 94%;
+    --muted-foreground: 155 12% 40%;
+
+    /* Accent — warm harvest gold */
+    --accent: 38 88% 52%;
+    --accent-foreground: 155 25% 12%;
+
+    --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 142 76% 36%;
-    --radius: 0.25rem;
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
-    
-    /* News-specific tokens */
-    --news-primary: 142 76% 36%;
-    --news-accent: 0 72% 51%;
-    --news-heading: 0 0% 10%;
-    --news-body: 0 0% 25%;
-    --news-meta: 0 0% 50%;
-    --news-border: 0 0% 88%;
-    --news-highlight: 45 100% 51%;
+
+    --border: 155 15% 88%;
+    --input: 155 15% 90%;
+    --ring: 158 64% 30%;
+
+    --radius: 0.75rem;
+
+    /* Rich tokens */
+    --gradient-hero: radial-gradient(ellipse at top left, hsl(158 55% 40% / 0.18), transparent 55%),
+                     radial-gradient(ellipse at bottom right, hsl(38 88% 52% / 0.15), transparent 50%),
+                     linear-gradient(180deg, hsl(40 33% 97%), hsl(145 20% 94%));
+    --gradient-primary: linear-gradient(135deg, hsl(158 64% 22%), hsl(158 55% 40%));
+    --gradient-gold: linear-gradient(135deg, hsl(38 88% 52%), hsl(30 82% 58%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(40 30% 98%));
+
+    --shadow-sm: 0 1px 2px hsl(155 25% 12% / 0.04), 0 1px 3px hsl(155 25% 12% / 0.06);
+    --shadow-md: 0 4px 12px -2px hsl(155 25% 12% / 0.08), 0 2px 6px -1px hsl(155 25% 12% / 0.05);
+    --shadow-lg: 0 20px 40px -12px hsl(158 40% 15% / 0.15), 0 8px 24px -8px hsl(158 40% 15% / 0.1);
+    --shadow-glow: 0 0 40px hsl(158 55% 40% / 0.25);
+
+    --sidebar-background: 158 40% 10%;
+    --sidebar-foreground: 40 20% 88%;
+    --sidebar-primary: 38 88% 52%;
+    --sidebar-primary-foreground: 155 25% 12%;
+    --sidebar-accent: 158 35% 16%;
+    --sidebar-accent-foreground: 40 33% 97%;
+    --sidebar-border: 158 30% 18%;
+    --sidebar-ring: 38 88% 52%;
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 142 76% 45%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 0 72% 55%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --background: 155 30% 7%;
+    --foreground: 40 20% 92%;
+    --card: 158 25% 11%;
+    --card-foreground: 40 20% 92%;
+    --popover: 158 25% 11%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 158 55% 45%;
+    --primary-foreground: 155 30% 7%;
+    --primary-glow: 158 60% 55%;
+    --secondary: 158 20% 16%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 158 20% 15%;
+    --muted-foreground: 40 12% 65%;
+    --accent: 38 88% 55%;
+    --accent-foreground: 155 30% 7%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 142 76% 45%;
-    --success: 142 76% 45%;
-    --warning: 38 92% 50%;
-    
-    --news-primary: 142 76% 45%;
-    --news-accent: 0 72% 55%;
-    --news-heading: 0 0% 95%;
-    --news-body: 0 0% 80%;
-    --news-meta: 0 0% 60%;
-    --news-border: 0 0% 25%;
-    --news-highlight: 45 100% 55%;
+    --border: 158 20% 18%;
+    --input: 158 20% 18%;
+    --ring: 158 55% 45%;
+
+    --gradient-hero: radial-gradient(ellipse at top left, hsl(158 55% 45% / 0.2), transparent 55%),
+                     radial-gradient(ellipse at bottom right, hsl(38 88% 55% / 0.12), transparent 50%),
+                     linear-gradient(180deg, hsl(155 30% 7%), hsl(158 25% 10%));
+    --gradient-primary: linear-gradient(135deg, hsl(158 55% 30%), hsl(158 60% 45%));
+    --gradient-card: linear-gradient(180deg, hsl(158 25% 12%), hsl(158 22% 10%));
+
+    --shadow-glow: 0 0 40px hsl(158 60% 45% / 0.35);
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
+  * { @apply border-border; }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight;
-    font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif;
+  h1, h2, h3, h4 {
+    font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer utilities {
-  .font-serif {
-    font-family: 'Merriweather', Georgia, serif;
+  .font-display { font-family: 'Fraunces', Georgia, serif; }
+  .bg-hero { background: var(--gradient-hero); }
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-gold { background: var(--gradient-gold); }
+  .bg-gradient-card { background: var(--gradient-card); }
+  .shadow-elev-sm { box-shadow: var(--shadow-sm); }
+  .shadow-elev-md { box-shadow: var(--shadow-md); }
+  .shadow-elev-lg { box-shadow: var(--shadow-lg); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .text-gradient-primary {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
-
-  .font-headline {
-    font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif;
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
-
-  .news-headline {
-    @apply font-bold text-foreground leading-tight tracking-tight;
-    font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif;
-  }
-
-  .news-category {
-    @apply inline-flex items-center px-2 py-0.5 text-xs font-bold uppercase tracking-wider bg-primary text-primary-foreground;
-  }
-
-  .news-category-accent {
-    @apply inline-flex items-center px-2 py-0.5 text-xs font-bold uppercase tracking-wider bg-accent text-accent-foreground;
-  }
-
-  .news-meta {
-    @apply text-sm text-muted-foreground;
-  }
-
-  .news-excerpt {
-    @apply text-muted-foreground leading-relaxed;
-  }
-
-  .news-border-bottom {
-    @apply border-b border-border pb-4 mb-4;
-  }
-
-  .news-link {
-    @apply text-foreground hover:text-primary transition-colors duration-200;
-  }
-
-  .breaking-news {
-    @apply bg-accent text-accent-foreground px-3 py-1 font-bold uppercase text-sm animate-pulse;
-  }
-
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .line-clamp-4 {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.3s ease-out;
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(5px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-[1.02];
-  }
-
-  .news-card {
-    @apply bg-card border border-border hover:shadow-md transition-shadow duration-200;
-  }
-
-  .featured-overlay {
-    @apply absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent;
+  .animate-fade-in { animation: fade-in 0.4s ease-out; }
+  .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@400;700&family=Merriweather:wght@400;700&display=swap');
